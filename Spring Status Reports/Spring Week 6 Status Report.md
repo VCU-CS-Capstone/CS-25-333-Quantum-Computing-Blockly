@@ -23,4 +23,4 @@ Thang Dinh
  - Finalize Mancala game
 
 ## 3) Issues, problems or concerns ##
-  NA
+ - Mancala chips stealing logic bugged
