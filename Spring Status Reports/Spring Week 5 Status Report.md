@@ -14,13 +14,14 @@ Thang Dinh
 Thang Dinh
 
 ## 1) Accomplishments this week ##
-   
+   - Made progress on new server.py with pyqubo
 
 
 ## 2) Milestones to be completed next week ##
- 
+   - Make test client to test inputs on new server
+   - Get new server.py functioning properly
 
 ## 3) Issues, problems or concerns ##
-  NA
+   - New server.py not creating proper qubo outputs 
    
 
