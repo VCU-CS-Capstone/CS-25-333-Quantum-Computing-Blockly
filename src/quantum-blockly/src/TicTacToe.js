@@ -79,13 +79,14 @@ const handleModeSelection = (mode) => {
     newCells[index] = player;
     setCells(newCells);
     log(`> Placed ${player} at cell ${index}\n\n`);
-
-    if (checkWinner(newCells)) {
+  
+    if (checkWinner(newCells, player)) {
       setGameOver(true);
       setTimeout(() => {
         alert(`${player} wins!`);
         handleWin(player);
       }, 100); // Slight delay to allow rendering
+      return; // Stop further game progression
     } else if (checkDraw(newCells)) {
       setGameOver(true);
       setTimeout(() => {
@@ -95,7 +96,7 @@ const handleModeSelection = (mode) => {
     } else {
       setCurrentPlayer(player === 'X' ? 'O' : 'X');
     }
-
+  
     saveGame({ cells: newCells, currentPlayer: player === 'X' ? 'O' : 'X' });
   };
 
@@ -158,111 +159,7 @@ const handleModeSelection = (mode) => {
     setCurrentPlayer('X');
     setTurnIndicator("It's Player 1's turn");
     setGameOver(false); // Allow new game to proceed
-  };
-
-  const handleCPUMove = (difficulty) => {
-    const availableCells = cells
-      .map((cell, index) => (cell === '' ? index : null))
-      .filter((index) => index !== null);
-  
-    log(`> Available cells for CPU: ${availableCells}\n`);
-    let chosenCell;
-  
-    if (difficulty === 'Easy') {
-      // Easy: Random move
-      chosenCell = availableCells[Math.floor(Math.random() * availableCells.length)];
-      log(`> CPU (Easy) chose cell: ${chosenCell}\n`);
-    } else if (difficulty === 'Medium') {
-      // Medium: Check for winning or blocking moves
-      for (let cell of availableCells) {
-        const testCells = [...cells];
-        testCells[cell] = currentPlayer;
-  
-        // Check if the move wins the game
-        if (checkWinner(testCells)) {
-          chosenCell = cell;
-          log(`> CPU (Medium) found winning move: ${chosenCell}\n`);
-          break;
-        }
-  
-        // Check if the opponent can win next move
-        const opponent = currentPlayer === 'X' ? 'O' : 'X';
-        testCells[cell] = opponent;
-        if (checkWinner(testCells)) {
-          chosenCell = cell;
-          log(`> CPU (Medium) found blocking move: ${chosenCell}\n`);
-          break;
-        }
-      }
-  
-      // If no strategic move, choose randomly
-      if (chosenCell === undefined) {
-        chosenCell = availableCells[Math.floor(Math.random() * availableCells.length)];
-        log(`> CPU (Medium) chose random move: ${chosenCell}\n`);
-      }
-    } else if (difficulty === 'Hard') {
-      // Hard: Minimax algorithm
-      chosenCell = getBestMove(cells, currentPlayer);
-      log(`> CPU (Hard) chose cell: ${chosenCell}\n`);
-    }
-  
-    makeMove(chosenCell);
-  };  
-  
-  
-  const getBestMove = (board, player) => {
-    const opponent = player === 'X' ? 'O' : 'X';
-  
-    const minimax = (newBoard, currentPlayer) => {
-      const availableCells = newBoard
-        .map((cell, index) => (cell === '' ? index : null))
-        .filter((index) => index !== null);
-  
-      // Check for terminal states
-      if (checkWinner(newBoard)) {
-        const score = currentPlayer === player ? -1 : 1;
-        log(`> Minimax: Terminal state found. Score: ${score}\n`);
-        return { score };
-      } else if (availableCells.length === 0) {
-        log('> Minimax: Draw state reached. Score: 0\n');
-        return { score: 0 }; // Draw
-      }
-  
-      const moves = [];
-      for (let cell of availableCells) {
-        const testBoard = [...newBoard];
-        testBoard[cell] = currentPlayer;
-  
-        const result = minimax(testBoard, currentPlayer === 'X' ? 'O' : 'X');
-        moves.push({ index: cell, score: result.score });
-      }
-  
-      // Select the best move
-      let bestMove;
-      if (currentPlayer === player) {
-        let maxScore = -Infinity;
-        for (let move of moves) {
-          if (move.score > maxScore) {
-            maxScore = move.score;
-            bestMove = move;
-          }
-        }
-      } else {
-        let minScore = Infinity;
-        for (let move of moves) {
-          if (move.score < minScore) {
-            minScore = move.score;
-            bestMove = move;
-          }
-        }
-      }
-  
-      log(`> Minimax: Best move for ${currentPlayer} is cell ${bestMove.index} with score ${bestMove.score}\n`);
-      return bestMove;
-    };
-  
-    return minimax(board, player).index;
-  };    
+  };      
 
   const fetchQuantumMove = async () => {
     var createQuboForSingleMove = () => {};
@@ -294,7 +191,87 @@ const handleModeSelection = (mode) => {
   };
   
 
-  const checkWinner = (currentCells) => {
+  const handleCPUMove = (difficulty) => {
+    const availableCells = cells
+      .map((cell, index) => (cell === '' ? index : null))
+      .filter((index) => index !== null);
+  
+    log(`> Available cells for CPU: ${availableCells}\n`);
+    let chosenCell = null;
+  
+    if (difficulty === 'Easy') {
+      // Easy: Random move
+      chosenCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+      log(`> CPU (Easy) chose cell: ${chosenCell}\n`);
+    } else if (difficulty === 'Medium') {
+      // Medium: Check for winning or blocking moves first
+      chosenCell = findStrategicMove(availableCells, cells, currentPlayer);
+      if (chosenCell === null) {
+        chosenCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+        log(`> CPU (Medium) chose random move: ${chosenCell}\n`);
+      }
+    } else if (difficulty === 'Hard') {
+      // Hard: Minimax algorithm for optimal move
+      chosenCell = getBestMove(cells, currentPlayer);
+      log(`> CPU (Hard) chose cell: ${chosenCell}\n`);
+    }
+  
+    makeMove(chosenCell);
+  };
+  
+  const findStrategicMove = (availableCells, board, player) => {
+    const opponent = player === 'X' ? 'O' : 'X';
+  
+    for (let cell of availableCells) {
+      let testBoard = [...board];
+      testBoard[cell] = player;
+      if (checkWinner(testBoard, player)) {
+        log(`> CPU (Medium) found winning move: ${cell}\n`);
+        return cell;
+      }
+  
+      testBoard = [...board];
+      testBoard[cell] = opponent;
+      if (checkWinner(testBoard, opponent)) {
+        log(`> CPU (Medium) found blocking move: ${cell}\n`);
+        return cell;
+      }
+    }
+    return null;
+  };
+  
+  const getBestMove = (board, player) => {
+    const opponent = player === 'X' ? 'O' : 'X';
+  
+    const minimax = (newBoard, currentPlayer) => {
+      const availableCells = newBoard
+        .map((cell, index) => (cell === '' ? index : null))
+        .filter((index) => index !== null);
+  
+      if (checkWinner(newBoard, player)) {
+        return { score: 1 };
+      } else if (checkWinner(newBoard, opponent)) {
+        return { score: -1 };
+      } else if (availableCells.length === 0) {
+        return { score: 0 }; // Draw
+      }
+  
+      const moves = availableCells.map((cell) => {
+        let testBoard = [...newBoard];
+        testBoard[cell] = currentPlayer;
+        const result = minimax(testBoard, currentPlayer === 'X' ? 'O' : 'X');
+        return { index: cell, score: result.score };
+      });
+  
+      return currentPlayer === player
+        ? moves.reduce((best, move) => (move.score > best.score ? move : best), { score: -Infinity })
+        : moves.reduce((best, move) => (move.score < best.score ? move : best), { score: Infinity });
+    };
+  
+    return minimax(board, player).index;
+  };
+  
+  const checkWinner = (board, player) => {
     const winningCombos = [
       [0, 1, 2],
       [3, 4, 5],
@@ -305,11 +282,11 @@ const handleModeSelection = (mode) => {
       [0, 4, 8],
       [2, 4, 6]
     ];
-
+  
     return winningCombos.some((combo) =>
-      combo.every((index) => currentCells[index] === currentPlayer)
+      combo.every((index) => board[index] === player)
     );
-  };
+  };  
 
   const checkDraw = (currentCells) => {
     return currentCells.every((cell) => cell);

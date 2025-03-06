@@ -1,0 +1,24 @@
+---
+title: "Mancala Game"
+output: html_document
+---
+
+# Mancala Game
+
+Welcome to Mancala! The objective is to have the most stones in your Mancala at the end of the game.
+
+### Objective:
+The goal of Mancala is to capture more stones (seeds) than your opponent by moving them around the board.
+
+### Rules:
+1. **Play**: On your turn, pick up all the stones from one of your pockets and place one stone in each pocket counterclockwise.
+2. **Captures**: If the last stone you place is in an empty pit on your side, you capture the opposite pit's stones.
+3. **Mancala**: If you land on your own Mancala, you place a stone in it and get another turn.
+4. **End**: The game ends when one player has no more stones in their six pockets.
+5. **Winner**: The player with the most stones in their Mancala at the end of the game wins.
+
+<div id="turn-notification"></div>
+<div id="game-board"></div>
+
+<script src="mancala.js"></script>
+<link rel="stylesheet" href="mancala.css" />

@@ -1,0 +1,96 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+    background-color: #f0f0f0;
+}
+
+#turn-notification {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+#game-board {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+}
+
+.row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+}
+
+/* Highlight current player with radiant blue outline */
+.active-player {
+    outline: 4px solid rgba(0, 162, 255, 0.8);
+    box-shadow: 0 0 15px rgba(0, 162, 255, 0.8);
+    border-radius: 10px;
+}
+
+/* Player 1's Setup */
+.row.player1 {
+    flex-direction: row;
+}
+
+.player1 .house, .player1 .mancala {
+    width: 60px;
+    height: 60px;
+    background-color: #f9d342;
+    margin: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.player1 .mancala {
+    width: 100px;
+    height: 100px;
+    background-color: #6a4e5f;
+    color: white;
+    font-size: 1.5em;
+    border-radius: 50%;
+    order: 1;
+}
+
+/* Player 2's Setup */
+.row.player2 {
+    flex-direction: row-reverse;
+}
+
+.player2 .house, .player2 .mancala {
+    width: 60px;
+    height: 60px;
+    background-color: #f39c12;
+    margin: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.player2 .mancala {
+    width: 100px;
+    height: 100px;
+    background-color: #6a4e5f;
+    color: white;
+    font-size: 1.5em;
+    border-radius: 50%;
+    order: 1;
+}
+
+.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

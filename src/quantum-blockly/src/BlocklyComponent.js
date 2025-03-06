@@ -1121,6 +1121,55 @@ useEffect(() => {
   };
 
 
+  // **EXPORT FUNCTION (Now with Editable Filename)**
+  const exportWorkspace = () => {
+    if (!workspace) return alert("No workspace found.");
+    
+    const state = Blockly.serialization.workspaces.save(workspace);
+    const jsonData = JSON.stringify(state, null, 2);
+    
+    // Prompt user for filename
+    let filename = prompt("Enter a name for the exported workspace:", "workspace");
+    if (!filename) return; // Cancelled or empty input
+    
+    // Ensure filename ends with .json
+    if (!filename.endsWith(".json")) {
+      filename += ".json";
+    }
+
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+    log(`> Workspace exported successfully as "${filename}".\n\n`);
+  };
+
+  // **IMPORT FUNCTION**
+  const importWorkspace = (event) => {
+    const file = event.target.files[0];
+    if (!file) return alert("No file selected.");
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        Blockly.serialization.workspaces.load(json, workspace);
+        log(`> Workspace imported successfully from "${file.name}".\n\n`);
+      } catch (error) {
+        alert("Invalid file format. Please upload a valid .json workspace file.");
+        console.error("Import error:", error);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+
+
   const listWorkspaces = async () => {
     try {
       const response = await fetch('http://127.0.0.1:8000/api/workspaces', {
@@ -1179,6 +1228,8 @@ useEffect(() => {
       <SaveAsBlockButton workspace={workspace} />
       <button onClick={saveWorkspace}>Save Workspace</button>
       <button onClick={loadWorkspace}>Load Workspace</button>
+      <button onClick={exportWorkspace}>Export Workspace</button>
+        <input type="file" accept=".json" onChange={importWorkspace} />
     </div>
     <div className="workspace-manager">
       <h3>Saved Workspaces</h3>

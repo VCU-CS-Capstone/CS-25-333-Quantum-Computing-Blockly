@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './Connect4.css'; // Import your CSS file or add styles directly here
+import './Connect4.css'; 
 import { COLLAPSED_FIELD_NAME } from 'blockly';
 
 const Connect4 = ({quboCode, log}) => {
