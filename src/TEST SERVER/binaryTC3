@@ -1,0 +1,12 @@
+{
+    "variables": {
+        "b1": {"type": "Binary"},
+        "b2": {"type": "Binary"},
+        "b3": {"type": "Binary"},
+        "b4": {"type": "Binary"}
+    },
+    "Constraints": [
+        {"lhs": "b1 + b2 + b3", "comparison": ">=", "rhs": 1}
+    ],
+    "Objective": "b4 - b1 * b3"
+}
