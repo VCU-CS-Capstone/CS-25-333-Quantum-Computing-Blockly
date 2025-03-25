@@ -15,9 +15,9 @@ Status Report Fall Week XX.md is a template for to copy-paste into new Status re
 | Week 2 Status Report | Sync github to get everything working | Added finishing touches to tictactoe, started on Mancala | No issues this week|
 | Week 3 Status Report | Add remaining features to connect 4, add more Blocky features | Add Blockly save to json, add best of 3 to connect 4 | No issues this week |
 | Week 4 Status Report | Work on adding more types of Blockly blocks, add features to connect 4, update mancala visuals| Expanded Blockly, added better AI to connect 4 CPU, Version 1 of Mancala game completed | No issues this week |
-| Week 5 Status Report | | | |
-| Week 6 Status Report | | | |
-| Week 7 Status Report | | | |
+| Week 5 Status Report | Make test client to test inputs on new server | Made progress on new server.py with pyqubo |New server.py not creating proper qubo outputs |
+| Week 6 Status Report | Update json formatting in BlocklyComponents.js for new server| Finished resctructured code for BlocklyComponents.js | Mancala chips stealing logic bugged|
+| Week 7 Status Report | Get 3 test inputs for Spin, Binary, Array variable types in new server | Made test client to pass test input json packages to the server | Mancala stealing chips logic not working correctly |
 | Week 8 Status Report | | | |
 | Week 9 Status Report | | | |
 | Week 10 Status Report | | | |

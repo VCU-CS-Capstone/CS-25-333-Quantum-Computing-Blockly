@@ -1,0 +1,11 @@
+{
+    "variables": {
+        "s1": {"type": "Spin"},
+        "s2": {"type": "Spin"}
+    },
+    "Constraints": [
+        {"lhs": "(s1 + s2) * (s1 - s2)", "comparison": "=", "rhs": 0},
+        {"lhs": "s1 * s2 + s1", "comparison": "<=", "rhs": 1}
+    ],
+    "Objective": "s1 * s2 - 2 * s1 + s2"
+}

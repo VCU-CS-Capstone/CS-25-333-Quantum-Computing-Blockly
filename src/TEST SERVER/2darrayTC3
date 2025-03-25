@@ -1,0 +1,9 @@
+{
+    "variables": {
+        "matrix": {"type": "Array", "size": 9}
+    },
+    "Constraints": [
+        {"lhs": "matrix[3] + matrix[6]", "comparison": "<=", "rhs": 2}
+    ],
+    "Objective": "matrix[4] - matrix[8]"
+}

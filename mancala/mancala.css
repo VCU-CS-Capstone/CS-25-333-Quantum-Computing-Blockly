@@ -27,12 +27,19 @@ body {
     margin: 10px 0;
 }
 
-/* Player 1's Setup */
-.row.player1 {
-    flex-direction: row; /* Player 1's houses will be in a left-to-right row */
+/* Highlight current player with radiant blue outline */
+.active-player {
+    outline: 4px solid rgba(0, 162, 255, 0.8);
+    box-shadow: 0 0 15px rgba(0, 162, 255, 0.8);
+    border-radius: 10px;
 }
 
-.player1 .house {
+/* Player 1's Setup */
+.row.player1 {
+    flex-direction: row;
+}
+
+.player1 .house, .player1 .mancala {
     width: 60px;
     height: 60px;
     background-color: #f9d342;
@@ -49,23 +56,18 @@ body {
     width: 100px;
     height: 100px;
     background-color: #6a4e5f;
-    margin: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     color: white;
     font-size: 1.5em;
     border-radius: 50%;
-    cursor: pointer;
-    order: 1; /* Player 1's mancala comes after their houses */
+    order: 1;
 }
 
 /* Player 2's Setup */
 .row.player2 {
-    flex-direction: row-reverse; /* Player 2's houses will be mirrored in a right-to-left row */
+    flex-direction: row-reverse;
 }
 
-.player2 .house {
+.player2 .house, .player2 .mancala {
     width: 60px;
     height: 60px;
     background-color: #f39c12;
@@ -82,40 +84,10 @@ body {
     width: 100px;
     height: 100px;
     background-color: #6a4e5f;
-    margin: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     color: white;
     font-size: 1.5em;
     border-radius: 50%;
-    cursor: pointer;
-    order: 1; /* Player 2's mancala comes after their houses */
-}
-
-/* Layout for the mancala (store) */
-.mancala {
-    background-color: #6a4e5f;
-}
-
-/* Adjust the layout for the whole game */
-#game-board {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Add spacing between the rows */
-.row {
-    margin: 10px;
-}
-
-.mancala.player1 {
-    order: 1; /* Player 1’s mancala is placed after their houses */
-}
-
-.mancala.player2 {
-    order: 1; /* Player 2’s mancala is placed after their houses, but on the other side */
+    order: 1;
 }
 
 .disabled {
