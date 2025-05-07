@@ -1,0 +1,113 @@
+{
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "pyqubo_model",
+        "id": "4RdLgqnV2+.cz|q)CQ/o",
+        "x": -110,
+        "y": -159,
+        "fields": {
+          "NAME": "createQuboForSingleMove"
+        },
+        "inputs": {
+          "VARIABLES": {
+            "block": {
+              "type": "pyqubo_array_variable",
+              "id": "{,iA{vQ$E|HJQb{=OOd0",
+              "fields": {
+                "NAME": "x",
+                "VARTYPE": "Binary"
+              },
+              "inputs": {
+                "SHAPE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "I?!y~g0Bg.z_sb{r9fP%",
+                    "fields": {
+                      "NUM": 9
+                    }
+                  },
+                  "block": {
+                    "type": "array_shape_input",
+                    "id": "4tHF~bU+SQHE^):v}hpp",
+                    "fields": {
+                      "ROWS": 3,
+                      "COLS": 3
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "CONSTRAINTS": {
+            "block": {
+              "type": "pyqubo_constraint",
+              "id": "O02jk6Pmj_1|nWeBg:+?",
+              "fields": {
+                "OPERATOR": "="
+              },
+              "inputs": {
+                "LHS": {
+                  "shadow": {
+                    "type": "pyqubo_var_reference",
+                    "id": "Y^],?.$~{f|29|*mq:S5",
+                    "fields": {
+                      "NAME": "x0 + x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8"
+                    }
+                  }
+                },
+                "RHS": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "Wwu)+]v*hE/LQn:^x!@}",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "OBJECTIVE": {
+            "block": {
+              "type": "pyqubo_objective",
+              "id": "%*EXvQ9%?au*C|~/ARAk",
+              "fields": {
+                "GOAL": "maximize"
+              },
+              "inputs": {
+                "EXPRESSION": {
+                  "block": {
+                    "type": "raw_text",
+                    "id": "}$DMs*Cf[g@:h:RvsnZl",
+                    "fields": {
+                      "TEXT": "9 * x4 + 7 * x0 + 7 * x2 + 7 * x6 + 7 * x8 + 5 * x1 + 5 * x3 + 5 * x5 + 5 * x7"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "RETURN": {
+            "block": {
+              "type": "pyqubo_return_expression",
+              "id": "i+Hkp=DbG-$ZYwp,BfUq",
+              "inputs": {
+                "EXPRESSION": {
+                  "block": {
+                    "type": "raw_text",
+                    "id": "Y8uHapIY8Z%S0XDL70dR",
+                    "fields": {
+                      "TEXT": "3 *x1 + x4 + 5 * x6 + 2 *x8"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}
