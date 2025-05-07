@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './Connect4.css';
+import './Mancala.css';
 
-const Connect4 = ({ quboCode, log }) => {
+const Mancala = ({ quboCode, log }) => {
   const [gameSetup, setGameSetup] = useState(false);
   const [player1Type, setPlayer1Type] = useState('Human');
   const [player2Type, setPlayer2Type] = useState('CPU');
@@ -10,6 +10,21 @@ const Connect4 = ({ quboCode, log }) => {
   const [player2Difficulty, setPlayer2Difficulty] = useState('Easy');
   const [unlockedDifficulties, setUnlockedDifficulties] = useState(['Easy']);
   const [currentPlayer, setCurrentPlayer] = useState('X');
+  /*const board = {
+    player1: [4, 4, 4, 4, 4, 4],
+    player2: [4, 4, 4, 4, 4, 4],
+    player1Mancala: 0,
+    player2Mancala: 0,
+    currentPlayer: 1, // 1 for Player 1, 2 for Player 2
+  };*/
+  const [player1Board, setPlayer1Board] = useState([4, 4, 4, 4, 4, 4]);
+  const [player2Board, setPlayer2Board] = useState([4, 4, 4, 4, 4, 4]);
+  const [player1Mancala, setPlayer1Mancala] = useState(0);
+  const [player2Mancala, setPlayer2Mancala] = useState(0);
+
+  let testPlayer2Mancala = player2Mancala;
+  let testPlayer1Mancala = player1Mancala;
+
   const [cells, setCells] = useState(Array(42).fill(''));
   const [playerWins, setPlayerWins] = useState({ X: 0, O: 0 });
   const [turnIndicator, setTurnIndicator] = useState('');
@@ -123,11 +138,14 @@ const Connect4 = ({ quboCode, log }) => {
         const matches = key.match(/\('x(\d+)'(?:, 'x(\d+)')?\)/);
         if (matches) {
           const var1 = parseInt(matches[1]);
-          const var2 = matches[2] ? parseInt(matches[2]) : null;
+          const var2 = null;//matches[2] ? parseInt(matches[2]) : null;
           
           if (var2 === null && var1 < 7) {  // Only use the first 7 variables for columns
             // Convert negative weights to positive by taking absolute value
             columnWeights[var1] = Math.abs(quboData.qubo[key]);
+            /*if(Math.abs(quboData.qubo[key]) > 9) {
+              columnWeights[var1] = 9;
+            }*/
           } else if (var1 < 7 && var2 < 7) {
             // This is an interaction term between columns
             if (!interactions[var1]) interactions[var1] = {};
@@ -198,7 +216,7 @@ const Connect4 = ({ quboCode, log }) => {
   // Create a visual representation of Connect4 board with weights
   const createConnect4Visual = (weights, board) => {
     let visual = "   Connect4 Column Weights:\n";
-    visual += "   ┌───┬───┬───┬───┬───┬───┬───┐\n";
+    visual += "   ┌────┬────┬────┬────┬────┬────┬────┐\n";
     
     // Show weights in top row
     visual += "   │";
@@ -207,10 +225,10 @@ const Connect4 = ({ quboCode, log }) => {
       visual += ` ${weight} │`;
     }
     visual += "\n";
-    visual += "   ├───┼───┼───┼───┼───┼───┼───┤\n";
+    visual += "   └────┴────┴────┴────┴────┴────┴────┘\n";
     
     // Show a simplified board representation (just a few rows)
-    for (let row = 0; row < 3; row++) {
+    /*for (let row = 0; row < 3; row++) {
       visual += "   │";
       for (let col = 0; col < 7; col++) {
         const cellIdx = row * 7 + col;
@@ -224,7 +242,7 @@ const Connect4 = ({ quboCode, log }) => {
       } else {
         visual += "   └───┴───┴───┴───┴───┴───┴───┘\n";
       }
-    }
+    }*/
     
     return visual;
   };
@@ -291,63 +309,172 @@ const Connect4 = ({ quboCode, log }) => {
     log(`> ${mode} Mode selected\n\n`);
   };
 
-  const handleCellClick = (index) => {
+  const handleCellClick = (player, index) => {
     if (gameSetup === false || gameOver || processingMove) return;
+
+    if (currentPlayer === 'X' && player === 2) {
+        return;
+    }
+
+    if (currentPlayer === 'O' && player === 1) {
+        return;
+    }
 
     if (
       (currentPlayer === 'X' && player1Type === 'Human') ||
       (currentPlayer === 'O' && player2Type === 'Human')
     ) {
-      makeMove(index);
+        if (currentPlayer === 'X') {
+            makeMove(1, index);
+        }
+        else if (currentPlayer === 'O') {
+            if (index === 0) {
+                makeMove(2, 5);
+            }
+            else if (index === 1) {
+                makeMove(2, 4);
+            }
+            else if (index === 2) {
+                makeMove(2, 3);
+            }
+            else if (index === 3) {
+                makeMove(2, 2);
+            }
+            else if (index === 4) {
+                makeMove(2, 1);
+            }
+            else if (index === 5) {
+                makeMove(2, 0);
+            }
+        }
     }
   };
 
-  const makeMove = (index, player = currentPlayer) => {
-    // Convert any index to the top of its column
-    let column = index % 7;
-    let validPosition = -1;
+  const makeMove = (player, index) => {
+    const mancalaPlayer = player === 1 ? player1Board : player2Board;
+    const opponent = player === 1 ? player2Board : player1Board;
 
-    // Find the lowest empty cell in the column
-    for (let row = 5; row >= 0; row--) {
-      const cellIndex = row * 7 + column;
-      if (cells[cellIndex] === '') {
-        validPosition = cellIndex;
-        break;
-      }
+    let seedsToMove = mancalaPlayer[index];
+    if (seedsToMove === 0) return; // No seeds to move in this pit
+
+    mancalaPlayer[index] = 0; // Empty the selected pit
+
+    let currentIndex = index + 1; // Start placing seeds in the next pit
+    let lastStoneInMancala = false;
+    let capturedStones = 0;
+    let landedInEmptyPit = false;
+    let oppositeIndex = -1;
+
+    // Distribute the seeds
+    while (seedsToMove > 0) {
+        if (currentIndex === 6) {
+            // Place in Player's Mancala (Player 1 or Player 2)
+            if (player === 1) {
+                setPlayer1Mancala(player1Mancala+1);
+                testPlayer1Mancala++;
+                if (seedsToMove === 1) lastStoneInMancala = true;
+            } else {
+                setPlayer2Mancala(player2Mancala+1);
+                testPlayer2Mancala++;
+                if (seedsToMove === 1) lastStoneInMancala = true;
+            }
+        } else if (currentIndex === 13) {
+            // Skip opponent's Mancala
+            currentIndex = 0;
+            continue;
+        } else if (currentIndex > 5) {
+            // Opponent's side (distribute seeds here)
+            opponent[currentIndex - 7]++;
+        } else {
+            // Player's side (distribute seeds here)
+            mancalaPlayer[currentIndex]++;
+        }
+
+        seedsToMove--;
+        currentIndex++;
+        if (currentIndex > 13) currentIndex = 0; // Wrap around the board
     }
 
-    // If no valid position was found (column is full)
-    if (validPosition === -1) {
-      log(`> Column ${column} is full, cannot make move\n\n`);
-      return;
+    // After distributing, check if last stone landed in an empty pit on the player's side
+    currentIndex--;
+    if (currentIndex <= 5 && mancalaPlayer[currentIndex] === 1) {
+        landedInEmptyPit = true;
+        oppositeIndex = 5 - currentIndex; // The opposite pit on the opponent's side
+
+        // Check if the opposite pit has seeds to capture
+        if (opponent[oppositeIndex] > 0) {
+            // Capture the seeds in the opposite pit and the last stone
+            capturedStones = opponent[oppositeIndex] + 1; // Opponent's seeds + the last stone
+            mancalaPlayer[currentIndex] = 0; // Clear the current pit
+            opponent[oppositeIndex] = 0; // Clear the opposite pit
+
+            // Add the captured stones to the player's Mancala
+            if (player === 1) {
+                setPlayer1Mancala(player1Mancala+capturedStones);
+                testPlayer1Mancala += capturedStones;
+            } else {
+                setPlayer2Mancala(player2Mancala+capturedStones);
+                testPlayer2Mancala += capturedStones;
+            }
+
+            // Update the board and check for game status after the capture
+            checkGameStatus();
+            setCurrentPlayer(player === 1 ? 'O' : 'X');
+            return; // End the function after capturing
+        }
     }
 
-    // Make the move at the valid position
-    const newCells = [...cells];
-    newCells[validPosition] = player;
-    setCells(newCells);
-    log(`> Placed ${player} at cell ${validPosition} (column ${column})\n\n`);
-
-    // Check for win
-    if (checkWinner(validPosition, newCells, player)) {
-      setGameOver(true);
-      setTimeout(() => {
-        alert(`${player} wins!`);
-        handleWin(player);
-      }, 100);
-      return;
-    } else if (checkDraw(newCells)) {
-      setGameOver(true);
-      setTimeout(() => {
-        alert("It's a draw!");
-        prepareNextGame();
-      }, 100);
-      return;
+    // If the last stone landed in a Mancala, the player gets another turn
+    if (lastStoneInMancala) {
+        checkGameStatus();
+        return; // Extra turn, no player switch
     }
 
+    checkGameStatus();
     // Switch player turn
-    setCurrentPlayer(player === 'X' ? 'O' : 'X');
-    saveGame({ cells: newCells, currentPlayer: player === 'X' ? 'O' : 'X' });
+    setCurrentPlayer(player === 1 ? 'O' : 'X');
+  };
+
+  const checkGameStatus = () => {
+    
+    const player1Empty = player1Board.every(seeds => seeds === 0);
+    const player2Empty = player2Board.every(seeds => seeds === 0);
+    
+    if (player1Empty || player2Empty) {
+        // Move any remaining stones to the Mancala
+
+        if (player1Empty) {
+            setPlayer2Mancala(player2Mancala + (player2Board.reduce((sum, seeds) => sum + seeds, 0)));
+            testPlayer2Mancala += (player2Board.reduce((sum, seeds) => sum + seeds, 0))
+            setPlayer2Board([0,0,0,0,0,0]);
+        } else {
+            setPlayer1Mancala(player1Mancala + (player1Board.reduce((sum, seeds) => sum + seeds, 0)));
+            testPlayer1Mancala += (player1Board.reduce((sum, seeds) => sum + seeds, 0))
+            setPlayer1Board([0,0,0,0,0,0]);
+        }
+
+        if(testPlayer1Mancala > testPlayer2Mancala) {
+            setGameOver(true);
+            setTimeout(() => {
+                alert(`Player 1 wins!`);
+                handleWin('X');
+            }, 100);
+        }
+        else if(testPlayer1Mancala < testPlayer2Mancala) {
+            setGameOver(true);
+            setTimeout(() => {
+                alert(`Player 2 wins!`);
+                handleWin('O');
+            }, 100);
+        }
+        else {
+            setGameOver(true);
+            setTimeout(() => {
+                alert("It's a draw!");
+                prepareNextGame();
+              }, 100);
+        }
+    }
   };
 
   const handleWin = (player) => {
@@ -403,9 +530,14 @@ const Connect4 = ({ quboCode, log }) => {
 
   const startNextGame = () => {
     // Create a completely fresh board first
-    const emptyBoard = Array(42).fill('');
-    setCells(emptyBoard);
-    
+    setPlayer1Board([4, 4, 4, 4, 4, 4]);
+    setPlayer2Board([4, 4, 4, 4, 4, 4]);
+    setPlayer1Mancala(0);
+    setPlayer2Mancala(0);
+
+    testPlayer2Mancala = 0;
+    testPlayer1Mancala = 0;
+        
     // Use a single timeout to delay all the remaining state changes
     setTimeout(() => {
       // Apply all these changes together
@@ -425,159 +557,164 @@ const Connect4 = ({ quboCode, log }) => {
   };
 
   // Enhanced fetchQuantumMove function for Connect4
-  const fetchQuantumMove = async () => {
-    // If already processing a move or game is over, exit early
-    if (gameOver || nextGameReady) {
-      console.log("Quantum move prevented - game state doesn't allow moves");
+const fetchQuantumMove = async () => {
+  // If already processing a move or game is over, exit early
+  if (gameOver || nextGameReady) {
+    console.log("Quantum move prevented - game state doesn't allow moves");
+    setProcessingMove(false);
+    return;
+  }
+  
+  setQuantumError(null);
+  let availableCells = [];
+
+  try {
+    // Define available cells first
+    availableCells = cells
+      .map((cell, index) => (cell === '' ? index : null))
+      .filter((index) => index !== null);
+
+    if (availableCells.length === 0) {
+      log('> No available moves to make\n\n');
       setProcessingMove(false);
       return;
     }
-    
-    setQuantumError(null);
-    let availableCells = [];
-  
-    try {
-      // Define available cells first
-      availableCells = cells
-        .map((cell, index) => (cell === '' ? index : null))
-        .filter((index) => index !== null);
-  
-      if (availableCells.length === 0) {
-        log('> No available moves to make\n\n');
-        setProcessingMove(false);
-        return;
-      }
-  
-      // Basic validation of QUBO code
-      if (!quboCode || typeof quboCode !== "string" || quboCode.trim() === '') {
-        throw new Error("No Blockly code found. Please create a QUBO model first.");
-      }
-  
-      // Check if code contains the required function
-      if (!quboCode.includes('createQuboForSingleMove')) {
-        throw new Error("Function 'createQuboForSingleMove' not found in your code.");
-      }
-      
-      log('> Evaluating your quantum algorithm...\n\n');
-  
-      // Create function in a safer way
-      const functionCreator = new Function('board', `
-        try {
-          ${quboCode}
-          return typeof createQuboForSingleMove === 'function' ? createQuboForSingleMove : null;
-        } catch (err) {
-          console.error("Function evaluation error:", err);
-          return null;
-        }
-      `);
-      
-      const createQuboForSingleMove = functionCreator(cells);
-  
-      if (typeof createQuboForSingleMove !== 'function') {
-        throw new Error("Could not create a valid function from your code");
-      }
-      
-  
-      // Get QUBO data
-      let qubo;
-      try {
-        qubo = createQuboForSingleMove(cells);
-        console.log("QUBO data returned from function:", JSON.stringify(qubo, null, 2));
-        
-        // Validate QUBO
-        if (!qubo || typeof qubo !== 'object') {
-          throw new Error("Your algorithm must return a valid QUBO object");
-        }
-        
-        // Ensure the QUBO has the correct format
-        if (!qubo.variables || Object.keys(qubo.variables).length === 0) {
-          throw new Error("No variables defined in your QUBO model");
-        }
-        
-        // Fix missing Return expression
-        if (!qubo.Return || typeof qubo.Return !== 'string' || qubo.Return.trim() === '') {
-          const returnTerms = [];
-          Object.keys(qubo.variables).forEach(varName => {
-            const index = varName.replace('x', '');
-            returnTerms.push(`${index} * ${varName}`);
-          });
-          qubo.Return = returnTerms.join(" + ");
-          console.log("Added default Return expression:", qubo.Return);
-        }
-      } catch (quboError) {
-        console.error("Error getting QUBO data:", quboError);
-        throw new Error(`Error when running your algorithm: ${quboError.message}`);
-      }
-  
-      // Send QUBO to server
-      log("> Sending quantum problem to solver...\n\n");
-      console.log("Final QUBO data being sent:", JSON.stringify(qubo, null, 2));
-  
-      const serverResult = await sendQuboToServer(qubo);
-  
-      // Handle error response from server
-      if (serverResult.status === 'error') {
-        throw new Error(serverResult.error || "Unknown server error");
-      }
-  
-      const responseData = serverResult.data;
-  
-      // Check for essential response properties
-      if (!responseData) {
-        throw new Error("Server returned an invalid response");
-      }
-  
-      // Log the full response for debugging
-      log(`> Full server response: ${JSON.stringify(responseData)}\n\n`);
-  
-      // Display the formatted QUBO data for educational purposes
-      log(`> Received quantum solution\n\n`);
-      //log(formatQuboForLog(responseData, cells) + "\n\n");
-  
-      // SIMPLIFIED CELL SELECTION LOGIC - Use only the primary method
-      let bestCell = null;
-      
-      // Only use the 'return' value if it's an integer cell index
-      if (responseData.return !== undefined && 
-          !isNaN(parseInt(responseData.return)) && 
-          cells[parseInt(responseData.return)] === '') {
-          
-        bestCell = parseInt(responseData.return);
-        log(`> Quantum algorithm selected cell ${bestCell}\n\n`);
-      } else {
-        throw new Error("Could not determine a valid move from the quantum solution");
-      }
-      
-      // Make the chosen move
-      if (bestCell > 6) {
-        bestCell = 6;
-      }
-      if (cells[0] !== '' || cells[1] !== '' || 
-        cells[2] !== '' || cells[3] !== '' || 
-        cells[4] !== '' || cells[5] !== '' || 
-        cells[6] !== '' ) {
-          makeMove((Math.floor(Math.random() * 7)), currentPlayer);
-        }
-      makeMove(bestCell, currentPlayer);
-  
-    } catch (error) {
-      console.error("Quantum Move Error:", error);
-      
-      log(`> ⚠️ Quantum Algorithm Error: ${error.message}\n`);
-      log(`> Game cannot proceed. Please fix your code and try again.\n\n`);
-      
-      setQuantumError(error.message);
-      
-      setTimeout(() => {
-        resetToSetup();
-      }, 1000);
-    } finally {
-      setProcessingMove(false);
+
+    // Basic validation of QUBO code
+    if (!quboCode || typeof quboCode !== "string" || quboCode.trim() === '') {
+      throw new Error("No Blockly code found. Please create a QUBO model first.");
     }
-  };
+
+    // Check if code contains the required function
+    if (!quboCode.includes('createQuboForSingleMove')) {
+      throw new Error("Function 'createQuboForSingleMove' not found in your code.");
+    }
+    
+    log('> Evaluating your quantum algorithm...\n\n');
+
+    // Create function in a safer way
+    const functionCreator = new Function('board', `
+      try {
+        ${quboCode}
+        return typeof createQuboForSingleMove === 'function' ? createQuboForSingleMove : null;
+      } catch (err) {
+        console.error("Function evaluation error:", err);
+        return null;
+      }
+    `);
+    
+    const createQuboForSingleMove = functionCreator(cells);
+
+    if (typeof createQuboForSingleMove !== 'function') {
+      throw new Error("Could not create a valid function from your code");
+    }
+
+    // Get QUBO data
+    let qubo;
+    try {
+      qubo = createQuboForSingleMove(cells);
+      console.log("QUBO data returned from function:", JSON.stringify(qubo, null, 2));
+      
+      // Validate QUBO
+      if (!qubo || typeof qubo !== 'object') {
+        throw new Error("Your algorithm must return a valid QUBO object");
+      }
+      
+      // Ensure the QUBO has the correct format
+      if (!qubo.variables || Object.keys(qubo.variables).length === 0) {
+        throw new Error("No variables defined in your QUBO model");
+      }
+      
+      // Fix missing Return expression
+      if (!qubo.Return || typeof qubo.Return !== 'string' || qubo.Return.trim() === '') {
+        const returnTerms = [];
+        Object.keys(qubo.variables).forEach(varName => {
+          const index = varName.replace('x', '');
+          returnTerms.push(`${index} * ${varName}`);
+        });
+        qubo.Return = returnTerms.join(" + ");
+        console.log("Added default Return expression:", qubo.Return);
+      }
+    } catch (quboError) {
+      console.error("Error getting QUBO data:", quboError);
+      throw new Error(`Error when running your algorithm: ${quboError.message}`);
+    }
+
+    // Send QUBO to server
+    log("> Sending quantum problem to solver...\n\n");
+    console.log("Final QUBO data being sent:", JSON.stringify(qubo, null, 2));
+
+    const serverResult = await sendQuboToServer(qubo);
+
+    // Handle error response from server
+    if (serverResult.status === 'error') {
+      throw new Error(serverResult.error || "Unknown server error");
+    }
+
+    const responseData = serverResult.data;
+
+    // Check for essential response properties
+    if (!responseData) {
+      throw new Error("Server returned an invalid response");
+    }
+
+    // Log the full response for debugging
+    log(`> Full server response: ${JSON.stringify(responseData)}\n\n`);
+
+    // Display the formatted QUBO data for educational purposes
+    log(`> Received quantum solution\n\n`);
+    //log(formatQuboForLog(responseData, cells) + "\n\n");
+
+    // SIMPLIFIED CELL SELECTION LOGIC - Use only the primary method
+    let bestCell = null;
+    
+    // Only use the 'return' value if it's an integer cell index
+    if (responseData.return !== undefined && 
+        !isNaN(parseInt(responseData.return)) && 
+        cells[parseInt(responseData.return)] === '') {
+        
+      bestCell = parseInt(responseData.return);
+      log(`> Quantum algorithm selected cell ${bestCell}\n\n`);
+    } else {
+      throw new Error("Could not determine a valid move from the quantum solution");
+    }
+    
+    if(bestCell > 5) {
+      bestCell = 5;
+    }
+    // Make the chosen move
+    if (currentPlayer === 'X') {
+      if (player1Board[bestCell] === 0) {
+        makeMove(1, (Math.floor(Math.random() * 6)));
+      }
+      makeMove(1, bestCell);
+  }
+  else {
+    if (player2Board[bestCell] === 0) {
+      makeMove(2, (Math.floor(Math.random() * 6)));
+    }
+      makeMove(2, bestCell);
+  }
+    
+
+  } catch (error) {
+    console.error("Quantum Move Error:", error);
+    
+    log(`> ⚠️ Quantum Algorithm Error: ${error.message}\n`);
+    log(`> Game cannot proceed. Please fix your code and try again.\n\n`);
+    
+    setQuantumError(error.message);
+    
+    setTimeout(() => {
+      resetToSetup();
+    }, 1000);
+  } finally {
+    setProcessingMove(false);
+  }
+};
 
   const handleCPUMove = (difficulty) => {
-    const availableColumns = [];
+    /*const availableColumns = [];
     for (let col = 0; col < 7; col++) {
       let isFull = true;
       // Check if column has any empty spaces
@@ -618,7 +755,14 @@ const Connect4 = ({ quboCode, log }) => {
       log(`> CPU (Hard) chose column: ${chosenColumn}\n`);
     }
   
-    makeMove(chosenColumn);
+    makeMove(chosenColumn);*/
+
+    if (currentPlayer === 'X') {
+        makeMove(1, (Math.floor(Math.random() * 6)));
+    }
+    else {
+        makeMove(2, (Math.floor(Math.random() * 6)));
+    }
   };
   
   const findStrategicMove = (availableColumns) => {
@@ -831,7 +975,14 @@ const Connect4 = ({ quboCode, log }) => {
   };
 
   const resetToSetup = () => {
-    setCells(Array(42).fill(''));
+    setPlayer1Board([4, 4, 4, 4, 4, 4]);
+    setPlayer2Board([4, 4, 4, 4, 4, 4]);
+    setPlayer1Mancala(0);
+    setPlayer2Mancala(0);
+
+    testPlayer2Mancala = 0;
+    testPlayer1Mancala = 0;
+    
     setCurrentPlayer('X');
     setGameSetup(false);
     setTurnIndicator('');
@@ -965,7 +1116,7 @@ const Connect4 = ({ quboCode, log }) => {
   // Main rendering logic
   return (
     <div className="container">
-      <h1>Connect 4</h1>
+      <h1>Mancala</h1>
 
       {/* Reset to Mode Selection Button */}
       <button
@@ -978,8 +1129,8 @@ const Connect4 = ({ quboCode, log }) => {
       {gameSetup ? (
         <>
           <div className="scoreboard">
-            <div>Player 1 (X): {renderScoreboard(playerWins.X, 'X')}</div>
-            <div>Player 2 (O): {renderScoreboard(playerWins.O, 'O')}</div>
+            <div>Player 1 : {renderScoreboard(playerWins.X, 'X')}</div>
+            <div>Player 2 : {renderScoreboard(playerWins.O, 'O')}</div>
           </div>
 
           {/* Display quantum error if one occurred */}
@@ -1001,17 +1152,36 @@ const Connect4 = ({ quboCode, log }) => {
 
           {/* Board with responsive styling */}
           <div className="board-container">
-            <div className="board">
-              {cells.map((cell, index) => (
-                <div
-                  key={index}
-                  className="cell"
-                  onClick={() => handleCellClick(index)}
-                >
-                  {cell}
-                </div>
-              ))}
+            <div className="mancala2">
+                <p>{player2Mancala}</p>
             </div>
+            <div className="board">
+                <div className="board2">
+                {player2Board.toReversed().map((cell, index) => (
+                    <div
+                    key={index}
+                    className="cell2"
+                    onClick={() => handleCellClick(2, index)}
+                    >
+                    {cell}
+                    </div>
+                ))}
+                </div>
+                <div className="board1">
+                {player1Board.map((cell, index) => (
+                    <div
+                    key={index}
+                    className="cell1"
+                    onClick={() => handleCellClick(1, index)}
+                    >
+                    {cell}
+                    </div>
+                ))}
+                </div>
+            </div>
+            <div className="mancala1">
+              <p>{player1Mancala}</p>
+              </div>
           </div>
 
           <p className="turn-indicator">{turnIndicator}</p>
@@ -1033,7 +1203,7 @@ const Connect4 = ({ quboCode, log }) => {
         <div className="setup">
           <h2>{gameMode} Setup</h2>
           <label>
-            Player 1 (X):
+            Player 1 :
             <select value={player1Type} onChange={(e) => handlePlayerTypeChange('player1', e.target.value)}>
               <option value="Human">Human</option>
               <option value="CPU">CPU</option>
@@ -1047,7 +1217,7 @@ const Connect4 = ({ quboCode, log }) => {
             </label>
           )}
           <label>
-            Player 2 (O):
+            Player 2 :
             <select value={player2Type} onChange={(e) => handlePlayerTypeChange('player2', e.target.value)}>
               <option value="Human">Human</option>
               <option value="CPU">CPU</option>
@@ -1067,4 +1237,4 @@ const Connect4 = ({ quboCode, log }) => {
   );
 };
 
-export default Connect4;
+export default Mancala;

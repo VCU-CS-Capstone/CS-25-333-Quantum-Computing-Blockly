@@ -1,11 +1,18 @@
+/* App.css Additions */
+
+/* Center the Quantum Blockly header */
 h1 {
-  text-align: center
+  text-align: center;
+  margin: 15px auto;
+  width: 100%;
 }
 
+/* Adjust the main layout to ensure logs are below games */
 .main {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
+  width: 100%;
 }
 
 .vertical-div {
@@ -16,8 +23,160 @@ h1 {
   width: 50%;
 }
 
+/* Blockly container - with transition for smooth resizing */
+.blockly-container {
+  height: 60%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+  transition: height 0.3s ease;
+}
+
+/* Code container styling */
+.code-container {
+  width: 95%; /* Slightly reduced to prevent overflow */
+  height: auto;
+  margin-top: 20px;
+  position: relative;
+}
+
+/* Game container changes - ensure game is fully visible with transition */
+.game-container {
+  height: 60%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+  transition: height 0.3s ease;
+}
+
+/* Log container - position below the game */
+.log-container {
+  width: 95%; /* Slightly reduced to prevent overflow */
+  height: auto;
+  margin-top: 20px;
+  position: relative;
+}
+
+/* Expanded container classes when logs are hidden */
+.blockly-container.expanded, 
+.game-container.expanded {
+  height: 85%; /* Expand to take most of the vertical space */
+}
+
+/* Center game setup menus */
+.setup {
+  padding: 15px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin: 15px auto; /* Center horizontally */
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.mode-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto;
+  width: 100%;
+}
+
+/* Ensure the container doesn't hide buttons */
+.container {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+}
+
+/* Make sure controls are visible */
 .controls {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #1e90ff;
+  margin-bottom: 20px;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.toggle-log-btn {
+  background-color: #1e90ff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.toggle-log-btn:hover {
+  background-color: #0b75d1;
+}
+
+/* For mobile screens, stack the layout */
+@media (max-width: 1200px) {
+  .main {
+    flex-direction: column;
+  }
+  
+  .vertical-div {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .blockly-container,
+  .game-container {
+    height: auto;
+    min-height: 300px;
+    margin-bottom: 15px;
+  }
+  
+  .blockly-container.expanded,
+  .game-container.expanded {
+    min-height: 450px;
+  }
+  
+  .code-container,
+  .log-container {
+    width: 95%;
+  }
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.popup-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.popup-content ul {
+  padding-left: 20px;
+}
+
+.popup-content code {
+  background: #eee;
+  padding: 2px 5px;
+  border-radius: 4px;
 }

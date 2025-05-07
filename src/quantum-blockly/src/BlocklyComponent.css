@@ -5,11 +5,20 @@ h2 {
 .blockly-area {
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .blockly-div {
-    width: 100%;
+    width: 100%; /* Full width */
     height: 480px;
+    margin: 0 auto; /* Center horizontally */
+}
+
+/* Ensure the blockly editor matches the generate button width */
+.injectionDiv {
+    width: 100% !important; /* Force full width */
 }
 
 #generate-btn {
